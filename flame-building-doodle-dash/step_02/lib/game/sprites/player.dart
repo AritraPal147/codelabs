@@ -9,7 +9,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 
 import '../doodle_dash.dart';
-// Core gameplay: Import sprites.dart
+import 'sprites.dart';
 
 enum PlayerState {
   left,
@@ -40,18 +40,19 @@ class Player extends SpriteGroupComponent<PlayerState>
   bool get isMovingDown => _velocity.y > 0;
   Character character;
   double jumpSpeed;
-  // Core gameplay: Add _gravity property
+  final double _gravity = 9.8;
+
+  // NOTE: In Flame, down and right are positive values and up and left
+  // are negative values
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
 
+    await add(CircleHitbox());
+
     await _loadCharacterSprites();
     current = PlayerState.center;
-    // Core gameplay: Add circle hitbox to Dash
-
-    // Add a Player to the game: loadCharacterSprites
-    // Add a Player to the game: Default Dash onLoad to center state
   }
 
   @override
@@ -70,7 +71,7 @@ class Player extends SpriteGroupComponent<PlayerState>
       position.x = dashHorizontalCenter;
     }
 
-    // Core gameplay: Add gravity
+    _velocity.y += _gravity;
 
     position += _velocity * dt;
     // Here, dt is the time elapsed since last game loop tick
@@ -123,9 +124,24 @@ class Player extends SpriteGroupComponent<PlayerState>
 
   // Powerups: Add isWearingHat getter
 
-  // Core gameplay: Override onCollision callback
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+    bool isCollidingVertically =
+      (intersectionPoints.first.y - intersectionPoints.last.y).abs() < 5;
 
-  // Core gameplay: Add a jump method
+    if (isMovingDown && isCollidingVertically) {
+      current = PlayerState.center;
+      if (other is NormalPlatform) {
+        jump();
+        return;
+      }
+    }
+  }
+
+  void jump({double? specialJumpSpeed}) {
+    _velocity.y = specialJumpSpeed != null ? -specialJumpSpeed : jumpSpeed;
+  }
 
   void _removePowerupAfterTime(int ms) {
     Future.delayed(Duration(milliseconds: ms), () {

@@ -28,10 +28,10 @@ class Player extends SpriteGroupComponent<PlayerState>
     required this.character,
     this.jumpSpeed = 600,
   }) : super(
-          size: Vector2(79, 109),
-          anchor: Anchor.center,
-          priority: 1,
-        );
+    size: Vector2(79, 109),
+    anchor: Anchor.center,
+    priority: 1,
+  );
 
   int _hAxisInput = 0;
   final int movingLeftInput = -1;
@@ -40,10 +40,7 @@ class Player extends SpriteGroupComponent<PlayerState>
   bool get isMovingDown => _velocity.y > 0;
   Character character;
   double jumpSpeed;
-  final double _gravity = 9.8;
-
-  // NOTE: In Flame, down and right are positive values and up and left
-  // are negative values
+  final double _gravity = 9;
 
   @override
   Future<void> onLoad() async {
@@ -57,24 +54,23 @@ class Player extends SpriteGroupComponent<PlayerState>
 
   @override
   void update(double dt) {
-
     if (gameRef.gameManager.isIntro || gameRef.gameManager.isGameOver) return;
 
     _velocity.x = _hAxisInput * jumpSpeed;
 
     final double dashHorizontalCenter = size.x / 2;
 
-    if (position.x < dashHorizontalCenter){
+    if (position.x < dashHorizontalCenter) {
       position.x = gameRef.size.x - (dashHorizontalCenter);
     }
-    if (position.x > gameRef.size.x - (dashHorizontalCenter)){
+    if (position.x > gameRef.size.x - (dashHorizontalCenter)) {
       position.x = dashHorizontalCenter;
     }
 
     _velocity.y += _gravity;
 
     position += _velocity * dt;
-    // Here, dt is the time elapsed since last game loop tick
+
     super.update(dt);
   }
 
@@ -82,16 +78,16 @@ class Player extends SpriteGroupComponent<PlayerState>
   bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     _hAxisInput = 0;
 
-    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)){
+    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
       moveLeft();
     }
 
-    if (keysPressed.contains(LogicalKeyboardKey.arrowRight)){
+    if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
       moveRight();
     }
 
-    // During development, it is useful to "cheat"
-    if (keysPressed.contains(LogicalKeyboardKey.arrowUp)){
+    // During development, its useful to "cheat"
+    if (keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
       // jump();
     }
 
@@ -101,6 +97,7 @@ class Player extends SpriteGroupComponent<PlayerState>
   void moveLeft() {
     _hAxisInput = 0;
 
+    // Powerups: Check is wearing hat (left)
     current = PlayerState.left;
 
     _hAxisInput += movingLeftInput;
@@ -109,6 +106,7 @@ class Player extends SpriteGroupComponent<PlayerState>
   void moveRight() {
     _hAxisInput = 0;
 
+    // Powerups: Check is wearing hat (right)
     current = PlayerState.right;
 
     _hAxisInput += movingRightInput;
@@ -127,8 +125,10 @@ class Player extends SpriteGroupComponent<PlayerState>
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
+    // Losing the game: Add collision logic for EnemyPlatform
+
     bool isCollidingVertically =
-      (intersectionPoints.first.y - intersectionPoints.last.y).abs() < 5;
+        (intersectionPoints.first.y - intersectionPoints.last.y).abs() < 5;
 
     if (isMovingDown && isCollidingVertically) {
       current = PlayerState.center;
@@ -136,11 +136,16 @@ class Player extends SpriteGroupComponent<PlayerState>
         jump();
         return;
       }
+      // More on platforms: Check SpringBoard platform
+      // More on platforms: Check BrokenPlatform
     }
+
+    // Powerups: Collision logic for Rocket
+    // Powerups: Collision logic for NooglerHat
   }
 
   void jump({double? specialJumpSpeed}) {
-    _velocity.y = specialJumpSpeed != null ? -specialJumpSpeed : jumpSpeed;
+    _velocity.y = specialJumpSpeed != null ? -specialJumpSpeed : -jumpSpeed;
   }
 
   void _removePowerupAfterTime(int ms) {
@@ -170,14 +175,14 @@ class Player extends SpriteGroupComponent<PlayerState>
     final left = await gameRef.loadSprite('game/${character.name}_left.png');
     final right = await gameRef.loadSprite('game/${character.name}_right.png');
     final center =
-        await gameRef.loadSprite('game/${character.name}_center.png');
+    await gameRef.loadSprite('game/${character.name}_center.png');
     final rocket = await gameRef.loadSprite('game/rocket_4.png');
     final nooglerCenter =
-        await gameRef.loadSprite('game/${character.name}_hat_center.png');
+    await gameRef.loadSprite('game/${character.name}_hat_center.png');
     final nooglerLeft =
-        await gameRef.loadSprite('game/${character.name}_hat_left.png');
+    await gameRef.loadSprite('game/${character.name}_hat_left.png');
     final nooglerRight =
-        await gameRef.loadSprite('game/${character.name}_hat_right.png');
+    await gameRef.loadSprite('game/${character.name}_hat_right.png');
 
     sprites = <PlayerState, Sprite>{
       PlayerState.left: left,
